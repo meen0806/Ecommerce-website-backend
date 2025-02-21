@@ -32,4 +32,10 @@ export class CreateProductDto {
 
   @IsNumber()
   sizeID: number | undefined;
+
+  @IsString()
+  logo_url:string | undefined
+
+  @IsString()
+  sizes:string | undefined
 }

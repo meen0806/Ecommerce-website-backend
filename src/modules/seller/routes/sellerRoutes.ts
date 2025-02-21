@@ -12,6 +12,7 @@ import {
   getAllShops,
   getCategoryID,
   getProductCategory,
+  getProducts,
   getProductSubCategory,
   getShopByID,
   getSubCategoryById,
@@ -40,6 +41,6 @@ router.get("/get-category-by-id/:id",getCategoryID)
 router.get("/get-subcategory-by-id/:id",getSubCategoryById)
 router.delete('/delete-subCategory',deleteSubCategory)
 router.delete("/delete-category-id",deleteCategory)
-//product route
-router.post("/create-product",createProduct)
+router.post("/create-product", upload.array("logo_url"), createProduct);
+router.get("/get/products",getProducts)
 export default router;

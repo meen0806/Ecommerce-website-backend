@@ -28,7 +28,7 @@ export class Product {
   price?: string | undefined;
 
   @Column({ type: "varchar", length: 255 })
-  qunatity!: string;
+  qunatity!: string |undefined;
 
   @ManyToOne(() => Seller_Shop, (shop) => shop.products)
   @JoinColumn({ name: "shopID" })
@@ -43,12 +43,17 @@ export class Product {
   subCategory!: SubCategory;
 
   @Column({ type: "varchar", length: 255 })
-  imageId!: string;
+  imageId!: string |undefined;
 
-  @OneToMany(() => Images, (images) => images.product)
+  @OneToMany(() => Images, (images) => images.product,{nullable:true})
   images: Images[] | undefined;
 
   @ManyToOne(() => Size, (size) => size.products)
   @JoinColumn({ name: "sizeID" })
   size!: Size;
+
+
+  @Column({ type: "varchar", length: 255 ,nullable:true})
+  sizes?: string |undefined;
+  
 }

@@ -6,9 +6,10 @@ import { CreateCategoryDto } from "../dto/create.category.dto";
 import { Product_Category } from "../entity/shopEntity/category.entity";
 import { CreateSubCategoryDto } from "../dto/create.subCategory.dto";
 import { SubCategory } from "../entity/shopEntity/subcategory.entity";
-import { In } from "typeorm";
+
 import { CreateProductDto } from "../dto/create.product.dto";
 import { Product } from "../entity/shopEntity/product.entity";
+import { Images } from "../entity/shopEntity/image.entity";
 
 const { AppDataSource } = require("../../../infra/db/data-source");
 
@@ -18,6 +19,7 @@ export class SellerService {
   private categoryRepository = AppDataSource.getRepository(Product_Category);
   private subCategoryRpo = AppDataSource.getRepository(SubCategory);
   private productRepository = AppDataSource.getRepository(Product);
+  private imageRepository = AppDataSource.getRepository(Images);
   shopRepo: any;
   // accountRepository: any;
   //shop api
@@ -311,7 +313,7 @@ FROM
     const category = await this.categoryRepository.findOneBy({
       id: categoryId,
     });
-    console.log(category.id, "*****************");
+
     // if (existingSubCategory) {
     //   throw new Error("Category already exists");
     // }
@@ -372,42 +374,102 @@ FROM
       throw new Error(error.message || "Failed to delete shop");
     }
   }
-  async createProduct(
-    shopDto: CreateProductDto,
-    req: any
-  ): Promise<any> {
+  async createProduct(shopDto: CreateProductDto, req: any): Promise<any> {
     const {
       name,
       description,
       imageId,
       shopID,
-      sizeID,
+      sizes,
       subCategoryID,
       categoryID,
       qunatity, // Fixed typo
       price,
     } = shopDto;
-  
+
     try {
+    
+      const shop = await this.shopRepository.findOne({ where: { id: shopID } });
+      const category = await this.categoryRepository.findOne({
+        where: { id: categoryID },
+      });
+      const subCategory = await this.subCategoryRpo.findOne({
+        where: { id: subCategoryID },
+      });
+      // const size = await this.sizeRepository.findOne({ where: { id: sizeID } });
+
+      if (!shop || !category || !subCategory) {
+        throw new Error("Invalid foreign key references.");
+      }
+
+      // Create new product with relations
       const newProduct = this.productRepository.create({
         name,
         description,
         imageId,
-        shopID,
-        sizeID,
-        subCategoryID,
-        categoryID,
+        shop,
+        category,
+        subCategory,
+        sizes,
+        // logo_url: req.files && req.files.length > 0 ? `${req.protocol}://${req.get("host")}/uploads/${req.files[0].filename}` : '',
         qunatity,
         price,
       });
-      console.log("avedProduct*************",newProduct)
+
+
+        // Fetch related entities from DB
+        // let logoUrl = "";
+        // if (req.file) {
+        //   const fullUrl = `${req.protocol}://${req.get("host")}`;
+        //   logoUrl = `${fullUrl}/uploads/${req.file.filename}`;
+        // }
+      console.log("Created Product:", newProduct);
       const savedProduct = await this.productRepository.save(newProduct);
-  console.log("avedProduct*************",savedProduct)
+      if (req.files) {
+        const images = req.files.map((file: any) => {
+          const fullUrl = `${req.protocol}://${req.get("host")}`;
+          const logoUrl = `${fullUrl}/uploads/${file.filename}`;
+
+          // Create a new image entity
+          const image = this.imageRepository.create({
+            logo_url: logoUrl,
+            product: savedProduct,
+          });
+
+          // Save the image entity
+          return this.imageRepository.save(image);
+        });
+
+        // Wait for all images to be saved
+        await Promise.all(images);
+      }
+
+      // console.log("Saved Product:", savedProduct);
       return savedProduct;
     } catch (error) {
-      throw new Error(`Failed to create product`);
+      console.error("Error creating product:", error);
+      throw new Error("Failed to create product");
     }
   }
-  
+  async getProducts(): Promise<any> {
+    try {
+      const rawQuery = `
+   SELECT * FROM product 
+JOIN images ON product.id = images."productID";
+
+
+    `;
+
+      const shops = await this.subCategoryRpo.manager.query(rawQuery);
+      console.log("subCatgeoreis", shops);
+      if (!shops.length) {
+        return { status: 404, message: "No sellers found" };
+      }
+      return { status: 200, shops };
+    } catch (error: any) {
+      throw new Error("Something went wrong");
+    }
+  }
+  //delete products and its related images
 }
 //product related api's

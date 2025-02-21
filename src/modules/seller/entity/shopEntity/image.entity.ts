@@ -7,7 +7,7 @@ export class Images {
   id: number | undefined;
 
   @Column("varchar", { length: 255 })
-  url!: string;
+ logo_url!: string| undefined;
 
   @ManyToOne(() => Product, (product) => product.images)
   @JoinColumn({ name: "productID" })

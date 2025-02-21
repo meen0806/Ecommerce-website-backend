@@ -5,7 +5,6 @@ import adminRoutes from './modules/admin/routes/admin.routes'
 import sellerRoutes from './modules/seller/routes/sellerRoutes'
 import cors from 'cors'
 import "reflect-metadata"; // Required for TypeORM decorators to work
-import path from "path";
 import multer from "multer";
 const app = express();
 const port = 3004;

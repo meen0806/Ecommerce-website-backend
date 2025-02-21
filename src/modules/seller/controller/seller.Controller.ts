@@ -162,12 +162,23 @@ export const createProduct = async (req: Request, res: Response) => {
 
     // Ensure this function doesn't take `res` as a parameter
     const newProduct = await sellerService.createProduct(shopDto, req);
-console.log("new product*****************",newProduct)
+
     res.status(201).json({
       message: "Product created successfully",
       product: newProduct,
     });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
+  }
+};
+
+export const getProducts= async (req: Request, res: Response) => {
+  try {
+    const result = await sellerService.getProducts();
+    res
+      .status(result.status)
+      .json({ message: "categories retrieved successfully", result });
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
   }
 };

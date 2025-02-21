@@ -11,6 +11,11 @@ dist
 
 .env
 
+src/uploads
+
+/home/adbhut/Documents/ecommerce-backend/uploads
+uploads
+
 
 
 
